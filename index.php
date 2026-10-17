@@ -43,24 +43,28 @@ switch ($path) {
     case '/login':
         $error = null;
         if ($requestMethod === 'POST') {
-            $username = trim($_POST['username'] ?? '');
-            $password = trim($_POST['password'] ?? '');
+            require_once __DIR__ . '/source/services/AuthService.php';
+            $loginInput = trim($_POST['username'] ?? '');
+            $passwordInput = trim($_POST['password'] ?? '');
 
-            // Basic authentication placeholder (replace with repository/service logic)
-            if (!empty($username) && !empty($password)) {
-                $_SESSION['user'] = [
-                    'username' => htmlspecialchars($username, ENT_QUOTES, 'UTF-8'),
-                    'logged_in_at' => date('Y-m-d H:i:s'),
-                ];
+            $authResult = AuthService::attempt($loginInput, $passwordInput);
+
+            if ($authResult['success']) {
+                $_SESSION['user'] = $authResult['user'];
 
                 $redirectTo = $_SESSION['redirect_after_login'] ?? '/';
                 unset($_SESSION['redirect_after_login']);
                 header('Location: ' . $redirectTo, true, 302);
                 exit;
             } else {
-                $error = 'Please enter both username and password.';
+                $error = $authResult['error'];
             }
         }
+
+        require_once __DIR__ . '/source/repositories/SystemInfoRepository.php';
+        $systemVersions = SystemInfoRepository::getAllVersions();
+        $systemVersion = $systemVersions['system'] ?? 'N/A';
+        $databaseVersion = $systemVersions['database'] ?? 'N/A';
 
         require __DIR__ . '/source/views/login.php';
         break;
@@ -83,8 +87,21 @@ switch ($path) {
         header('Location: /login', true, 302);
         exit;
 
+    case '/users':
+        require_once __DIR__ . '/source/controllers/UsersController.php';
+        UsersController::handle();
+        break;
+
+    case '/roles':
+        require_once __DIR__ . '/source/controllers/RolesController.php';
+        RolesController::handle();
+        break;
+
     case '/':
+        require_once __DIR__ . '/source/services/PermissionService.php';
         $user = $_SESSION['user'] ?? null;
+        $canAccessUsers = $user ? PermissionService::canAccess($user, 'users') : false;
+        $canAccessRoles = $user ? PermissionService::canAccess($user, 'roles') : false;
         require __DIR__ . '/source/views/home.php';
         break;
 
