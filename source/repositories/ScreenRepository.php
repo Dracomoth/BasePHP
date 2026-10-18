@@ -20,7 +20,7 @@ class ScreenRepository {
         }
 
         try {
-            $stmt = $pdo->query("SELECT `id`, `screen_key`, `name`, `category`, `sort_order` FROM `screens` ORDER BY `sort_order` ASC, `id` ASC");
+            $stmt = $pdo->query("SELECT `id`, `screen_key`, `name`, `category`, `sort_order`, `grouped` FROM `screens` ORDER BY `sort_order` ASC, `id` ASC");
             return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch (Throwable $e) {
             error_log("Failed to fetch screens: " . $e->getMessage());
@@ -41,7 +41,7 @@ class ScreenRepository {
         }
 
         try {
-            $stmt = $pdo->prepare("SELECT `id`, `screen_key`, `name`, `category`, `sort_order` FROM `screens` WHERE `screen_key` = :key LIMIT 1");
+            $stmt = $pdo->prepare("SELECT `id`, `screen_key`, `name`, `category`, `sort_order`, `grouped` FROM `screens` WHERE `screen_key` = :key LIMIT 1");
             $stmt->execute(['key' => $screenKey]);
             $screen = $stmt->fetch(PDO::FETCH_ASSOC);
             return $screen ?: null;
