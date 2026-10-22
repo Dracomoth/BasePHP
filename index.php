@@ -97,6 +97,11 @@ switch ($path) {
         RolesController::handle();
         break;
 
+    case '/profile':
+        require_once __DIR__ . '/source/controllers/ProfileController.php';
+        ProfileController::handle();
+        break;
+
     case '/':
         require_once __DIR__ . '/source/services/PermissionService.php';
         $user = $_SESSION['user'] ?? null;

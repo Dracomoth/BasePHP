@@ -63,4 +63,28 @@ class Database {
             return null;
         }
     }
+
+    /**
+     * Check if the database connection is currently alive and responsive.
+     * 
+     * @return bool
+     */
+    public static function isOnline(): bool {
+        try {
+            $pdo = self::getConnection();
+            if (!$pdo) {
+                return false;
+            }
+            return $pdo->query("SELECT 1") !== false;
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Reset the active connection (useful for reconnects or testing).
+     */
+    public static function disconnect(): void {
+        self::$connection = null;
+    }
 }

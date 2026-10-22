@@ -50,4 +50,59 @@ class ScreenRepository {
             return null;
         }
     }
+
+    /**
+     * Retrieve screens formatted for sidebar navigation according to permissions.
+     * Separates screens into standalone items and grouped collections.
+     * For grouped screens, groups are sorted and items under each group are sorted by sort_order.
+     * 
+     * @param array $user
+     * @return array ['standalone' => array, 'groups' => array]
+     */
+    public static function getNavScreensForUser(array $user): array {
+        $screens = self::getAll();
+        $standalone = [];
+        $groups = [];
+
+        require_once dirname(__DIR__) . '/services/PermissionService.php';
+
+        foreach ($screens as $screen) {
+            if (!PermissionService::canAccess($user, $screen['screen_key'])) {
+                continue;
+            }
+
+            if (!empty($screen['grouped'])) {
+                $cat = !empty($screen['category']) ? trim($screen['category']) : 'General';
+                if (!isset($groups[$cat])) {
+                    $groups[$cat] = [
+                        'name'     => $cat,
+                        'min_sort' => (int) ($screen['sort_order'] ?? 0),
+                        'items'    => [],
+                    ];
+                } else {
+                    $groups[$cat]['min_sort'] = min($groups[$cat]['min_sort'], (int) ($screen['sort_order'] ?? 0));
+                }
+                $groups[$cat]['items'][] = $screen;
+            } else {
+                $standalone[] = $screen;
+            }
+        }
+
+        // Sort items within each group by sort_order
+        foreach ($groups as &$group) {
+            usort($group['items'], fn($a, $b) => ((int) $a['sort_order'] <=> (int) $b['sort_order']) ?: ((int) $a['id'] <=> (int) $b['id']));
+        }
+        unset($group);
+
+        // Sort groups by minimum sort_order
+        uasort($groups, fn($a, $b) => ($a['min_sort'] <=> $b['min_sort']) ?: strcmp($a['name'], $b['name']));
+
+        // Sort standalone screens by sort_order
+        usort($standalone, fn($a, $b) => ((int) $a['sort_order'] <=> (int) $b['sort_order']) ?: ((int) $a['id'] <=> (int) $b['id']));
+
+        return [
+            'standalone' => $standalone,
+            'groups'     => $groups,
+        ];
+    }
 }

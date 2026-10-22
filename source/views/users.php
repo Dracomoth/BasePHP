@@ -7,28 +7,8 @@
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-    <header class="app-header">
-        <div class="container header-container">
-            <div class="header-left">
-                <a href="/" class="brand">BasePHP</a>
-                <?php 
-                require_once dirname(__DIR__) . '/services/PermissionService.php';
-                $canAccessRoles = PermissionService::canAccess($currentUser, 'roles');
-                ?>
-                <nav class="nav-links">
-                    <a href="/" class="nav-link">Dashboard</a>
-                    <a href="/users" class="nav-link active">Users</a>
-                    <?php if (!empty($canAccessRoles)): ?>
-                        <a href="/roles" class="nav-link">Roles</a>
-                    <?php endif; ?>
-                </nav>
-            </div>
-            <div class="user-meta">
-                <span>Welcome, <strong><?= htmlspecialchars($currentUser['username'] ?? 'User', ENT_QUOTES, 'UTF-8') ?></strong></span>
-                <a href="/logout" class="btn btn-outline btn-sm">Log Out</a>
-            </div>
-        </div>
-    </header>
+    <?php require __DIR__ . '/layout/header.php'; ?>
+    <?php require __DIR__ . '/layout/sidebar.php'; ?>
 
     <main class="container page-content">
         <div class="page-header">
@@ -167,13 +147,13 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Username</th>
-                            <th>Full Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Status</th>
-                            <th>Last Login</th>
-                            <th class="text-right">Actions</th>
+                            <th class="user-col-username">Username</th>
+                            <th class="user-col-name">Full Name</th>
+                            <th class="user-col-email">Email</th>
+                            <th class="user-col-role">Role</th>
+                            <th class="user-col-status">Status</th>
+                            <th class="user-col-login">Last Login</th>
+                            <th class="user-col-actions text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -184,50 +164,52 @@
                         <?php else: ?>
                             <?php foreach ($users as $user): ?>
                                 <tr>
-                                    <td>
+                                    <td class="user-col-username">
                                         <strong><?= htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') ?></strong>
                                     </td>
-                                    <td><?= htmlspecialchars(trim($user['first_name'] . ' ' . $user['last_name']), ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td><?= htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8') ?></td>
-                                    <td>
+                                    <td class="user-col-name"><?= htmlspecialchars(trim($user['first_name'] . ' ' . $user['last_name']), ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td class="user-col-email"><?= htmlspecialchars($user['email'], ENT_QUOTES, 'UTF-8') ?></td>
+                                    <td class="user-col-role">
                                         <span class="badge <?= !empty($user['is_super']) ? 'badge-primary' : '' ?>">
                                             <?= htmlspecialchars($user['role_name'], ENT_QUOTES, 'UTF-8') ?>
                                         </span>
                                     </td>
-                                    <td>
+                                    <td class="user-col-status">
                                         <?php if (!empty($user['is_active'])): ?>
                                             <span class="badge badge-success">Active</span>
                                         <?php else: ?>
                                             <span class="badge badge-danger">Inactive</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td class="text-muted text-sm">
+                                    <td class="user-col-login text-muted text-sm">
                                         <?= !empty($user['last_login']) ? htmlspecialchars($user['last_login'], ENT_QUOTES, 'UTF-8') : 'Never' ?>
                                     </td>
                                     <td class="text-right actions-cell">
-                                        <!-- Edit Action -->
-                                        <a href="/users?action=edit&id=<?= (int) $user['id'] ?>" class="btn btn-outline btn-xs">Edit</a>
+                                        <div class="actions-wrapper">
+                                            <!-- Edit Action -->
+                                            <a href="/users?action=edit&id=<?= (int) $user['id'] ?>" class="btn btn-outline btn-xs">Edit</a>
 
-                                        <!-- Toggle Status Action -->
-                                        <form method="POST" action="/users" class="inline-form">
-                                            <input type="hidden" name="action" value="toggle_status">
-                                            <input type="hidden" name="id" value="<?= (int) $user['id'] ?>">
-                                            <?php if (!empty($user['is_active'])): ?>
-                                                <button type="submit" class="btn btn-outline btn-xs btn-warn" 
-                                                        title="Deactivate User">Deactivate</button>
-                                            <?php else: ?>
-                                                <button type="submit" class="btn btn-outline btn-xs btn-success" 
-                                                        title="Activate User">Activate</button>
-                                            <?php endif; ?>
-                                        </form>
+                                            <!-- Toggle Status Action -->
+                                            <form method="POST" action="/users" class="inline-form">
+                                                <input type="hidden" name="action" value="toggle_status">
+                                                <input type="hidden" name="id" value="<?= (int) $user['id'] ?>">
+                                                <?php if (!empty($user['is_active'])): ?>
+                                                    <button type="submit" class="btn btn-outline btn-xs btn-warn" 
+                                                            title="Deactivate User">Deactivate</button>
+                                                <?php else: ?>
+                                                    <button type="submit" class="btn btn-outline btn-xs btn-success" 
+                                                            title="Activate User">Activate</button>
+                                                <?php endif; ?>
+                                            </form>
 
-                                        <!-- Delete Action -->
-                                        <form method="POST" action="/users" class="inline-form" 
-                                              onsubmit="return confirm('Are you sure you want to permanently delete user <?= htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') ?>?');">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="id" value="<?= (int) $user['id'] ?>">
-                                            <button type="submit" class="btn btn-outline btn-xs btn-danger">Delete</button>
-                                        </form>
+                                            <!-- Delete Action -->
+                                            <form method="POST" action="/users" class="inline-form" 
+                                                  onsubmit="return confirm('Are you sure you want to permanently delete user <?= htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8') ?>?');">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="id" value="<?= (int) $user['id'] ?>">
+                                                <button type="submit" class="btn btn-outline btn-xs btn-danger">Delete</button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -237,5 +219,7 @@
             </div>
         </div>
     </main>
+
+    <?php require __DIR__ . '/layout/footer.php'; ?>
 </body>
 </html>

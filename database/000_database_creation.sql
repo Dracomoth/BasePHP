@@ -99,8 +99,8 @@ ON DUPLICATE KEY UPDATE
 -- Seed Initial Screens (Users and Roles Management)
 -- -----------------------------------------------------------------------------
 INSERT INTO `screens` (`screen_key`, `name`, `category`, `sort_order`, `grouped`) VALUES
-    ('users', 'Users', 'Security', 10, 0),
-    ('roles', 'Roles', 'Security', 20, 0)
+    ('users', 'Users', 'Security', 10, 1),
+    ('roles', 'Roles', 'Security', 20, 1)
 ON DUPLICATE KEY UPDATE
     `name` = VALUES(`name`),
     `category` = VALUES(`category`),

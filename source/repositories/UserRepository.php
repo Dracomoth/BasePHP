@@ -300,6 +300,53 @@ class UserRepository {
     }
 
     /**
+     * Update user profile information (first_name, last_name, email, optional password and avatar)
+     * 
+     * @param int $id
+     * @param array $data
+     * @return bool
+     * @throws Exception
+     */
+    public static function updateProfile(int $id, array $data): bool {
+        $pdo = Database::getConnection();
+        if (!$pdo) {
+            throw new Exception("Database connection unavailable.");
+        }
+
+        $fields = [
+            '`first_name` = :first_name',
+            '`last_name` = :last_name',
+            '`email` = :email',
+        ];
+
+        $params = [
+            'id'         => $id,
+            'first_name' => $data['first_name'],
+            'last_name'  => $data['last_name'],
+            'email'      => $data['email'],
+        ];
+
+        if (!empty($data['username'])) {
+            $fields[] = '`username` = :username';
+            $params['username'] = $data['username'];
+        }
+
+        if (array_key_exists('avatar_path', $data)) {
+            $fields[] = '`avatar_path` = :avatar_path';
+            $params['avatar_path'] = $data['avatar_path'];
+        }
+
+        if (!empty($data['password_hash'])) {
+            $fields[] = '`password_hash` = :password_hash';
+            $params['password_hash'] = $data['password_hash'];
+        }
+
+        $sql = "UPDATE `users` SET " . implode(', ', $fields) . " WHERE `id` = :id";
+        $stmt = $pdo->prepare($sql);
+        return $stmt->execute($params);
+    }
+
+    /**
      * Delete a user by ID
      * 
      * @param int $id
